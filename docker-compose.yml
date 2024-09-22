@@ -6,6 +6,8 @@ services:
     build: .
     depends_on:
       - mongo
+    networks:
+      - storage-net
 
   mongo:
     image: mongo
@@ -14,6 +16,11 @@ services:
       - "27017:27017"
     volumes:
       - mongo-data:/data/db
+    networks:
+      - storage-net
 
 volumes:
   mongo-data:
+
+networks:
+  storage-net:

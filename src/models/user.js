@@ -18,26 +18,25 @@ userSchema.methods.useTool = async function (toolName) {
 
   try {
     await tool.useTool(this.name);
+    // TODO: maybe we need to check if userId already exists in the array
+    tool.borrowedBy.push(this._id);
+    await tool.save();
   } catch (err) {
     throw new Error(`We can't use ${toolName}: ${err.message}`);
   }
 };
 
 // Return the list of all tools used by that user
-userSchema.usedItems = function () {
-  return Tool.find({ borrowedBy: this._id }).populate("name");
+userSchema.methods.usedTools = async function () {
+  return await Tool.find({ borrowedBy: this._id }).populate("borrowedBy");
 };
 
 // Specify amount and type of material, what tools you used
 userSchema.methods.buildSomething = async function (tools, materials) {
   // Loop through tools and use them
   for (let toolName of tools) {
-    const tool = await Tool.findByName(toolName);
-    if (!tool) {
-      throw new Error(`Tool with name ${toolName} not found`);
-    }
-    tool.useTool(this.name); // Use the tool
-    await tool.save();
+    // Use the tool
+    await this.useTool(toolName);
   }
 
   // Loop through materials and reduce quantity
@@ -46,13 +45,13 @@ userSchema.methods.buildSomething = async function (tools, materials) {
     if (!material) {
       throw new Error(`Material with name ${materialName} not found`);
     }
-    material.use(quantity);
+    await material.use(quantity);
     await material.save();
   }
 };
 
 userSchema.statics.findByName = function (name) {
-  return this.find({ name: name });
+  return this.findOne({ name: name });
 };
 
 module.exports = mongoose.model("User", userSchema);

@@ -1,6 +1,5 @@
 const mongoose = require("mongoose");
 const Item = require("./item");
-const User = require("./user");
 
 const toolSchema = new mongoose.Schema(
   {
@@ -23,16 +22,9 @@ const toolSchema = new mongoose.Schema(
 // Otherwise you can’t
 // Receives name who used it
 // Add the user to the list borrowedBy
-toolSchema.methods.useTool = async function (userName) {
-  const user = await User.findByName(userName);
-  if (!user) {
-    throw new Error(`User with name ${userName} not found`);
-  }
-
+toolSchema.methods.useTool = async function () {
   if (this.condition > 15) {
     this.condition -= 10;
-    // TODO: maybe we need to check if userId already exists in the array
-    this.borrowedBy.push(user._id);
     await this.save();
   } else {
     throw new Error(`${this.name}'s condition is too low, you can't use it`);
